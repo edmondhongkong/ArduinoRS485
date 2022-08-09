@@ -52,6 +52,15 @@ void RS485Class::begin(unsigned long baudrate, uint16_t config, int predelay, in
   _predelay = _predelay == 0 ? predelay : _predelay;
   _postdelay = _postdelay == 0 ? postdelay : _postdelay;
 
+  //if shorted DE & RE Pin
+  if (_dePin == _rePin) {
+    if (_dePin > -1) {
+      pinMode(_dePin, OUTPUT);
+      digitalWrite(_dePin, LOW);
+      pinMode(_rePin, INPUT);
+    }
+  }
+  else {
   if (_dePin > -1) {
     pinMode(_dePin, OUTPUT);
     digitalWrite(_dePin, LOW);
@@ -61,7 +70,7 @@ void RS485Class::begin(unsigned long baudrate, uint16_t config, int predelay, in
     pinMode(_rePin, OUTPUT);
     digitalWrite(_rePin, HIGH);
   }
-
+  }
   _transmisionBegun = false;
 
   _serial->begin(baudrate, config);
@@ -71,14 +80,19 @@ void RS485Class::end()
 {
   _serial->end();
 
-  if (_rePin > -1) {
-    digitalWrite(_rePin, LOW);
-    pinMode(_dePin, INPUT);
-  }
-  
-  if (_dePin > -1) {
+  if (_dePin == _rePin) {
     digitalWrite(_dePin, LOW);
-    pinMode(_rePin, INPUT);
+  }
+  else {
+    if (_rePin > -1) {
+      digitalWrite(_rePin, LOW);
+      pinMode(_dePin, INPUT);
+    }
+    
+    if (_dePin > -1) {
+      digitalWrite(_dePin, LOW);
+      pinMode(_rePin, INPUT);
+    }
   }
 }
 
@@ -141,15 +155,25 @@ void RS485Class::endTransmission()
 
 void RS485Class::receive()
 {
-  if (_rePin > -1) {
-    digitalWrite(_rePin, LOW);
+  if (_dePin == _rePin) {
+    digitalWrite(_dePin, LOW);
+  }
+  else {
+    if (_rePin > -1) {
+      digitalWrite(_rePin, LOW);
+    }
   }
 }
 
 void RS485Class::noReceive()
 {
+  if (_dePin == _rePin) {
+    digitalWrite(_dePin, LOW);
+  }
+  else {
   if (_rePin > -1) {
     digitalWrite(_rePin, HIGH);
+  }
   }
 }
 
